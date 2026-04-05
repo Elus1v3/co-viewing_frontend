@@ -1,10 +1,56 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
+import btn from '@/components/btn.vue'
 
 const router = useRouter()
 
-const SignUp = () => {
-  router.push('/')
+const nickname = ref('')
+const password = ref('')
+
+const loading = ref(false)
+const error = ref<string | null>(null)
+
+
+const SignUp = async () => {
+  if (!nickname.value || !password.value) {
+    error.value = 'Заполните все поля'
+    return
+  }
+
+  try {
+    loading.value = true
+    error.value = null
+
+  
+    const apiUrl = import.meta.env.VITE_API_URL
+
+    const response = await fetch(`${apiUrl}/api/co-viewing/users/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nickname: nickname.value,
+        password: password.value,
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Registration failed')
+    }
+
+
+    router.push('/')
+    
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Registration error:', err)
+  } finally {
+    loading.value = false
+  }
 }
 
 
@@ -18,19 +64,21 @@ const SignUp = () => {
                 duration-[0.4s] ease">
       <h6 class="flex justify-center text-3xl m-[5px]">Sign Up</h6>
       <div class="flex justify-center items-center">
-        <h4 class="m-5 w-15 text-right text-lg">Mail</h4>
-        <input type="text" class="bg-[#e7b4ff] m-5 w-100 h-10 text-[#500075] rounded-[50px] 
+        <h4 class="m-5 w-15 text-right text-lg">Nickname</h4>
+        <input v-model="nickname" type="text" class="bg-[#e7b4ff] m-5 w-100 h-10 text-[#500075] rounded-[50px] 
                      p-5 outline-none hover:animate-bounce">
       </div>
 
       <div class="flex justify-center items-center">
         <h4 class="m-5 w-15 text-right text-lg">Password</h4>
-        <input type="text" class="bg-[#e7b4ff] m-5 w-100 h-10 text-[#500075] rounded-[50px] 
+        <input v-model="password" type="text" class="bg-[#e7b4ff] m-5 w-100 h-10 text-[#500075] rounded-[50px] 
                      p-5 outline-none hover:animate-bounce">
       </div>
-        
-      <button @click="SignUp" class=" mt-20 mx-30 mb-5 bg-[#7ed2ea] text-[#003641] h-10 rounded-[50px] 
-                     cursor-pointer hover:animate-pulse">Sign up</button>
+      <div v-if="error" class="flex items-center mb-4 w-fit mx-auto h-[40px] p-[10px] bg-red-500 bg-opacity-20 text-white rounded-full text-sm">
+        {{ error }}
+      </div>
+      <btn @click="SignUp">Sign Up</btn>
+      
       <div class="flex flex-row justify-center m-[5px]">
         <p>
           You have an account?
