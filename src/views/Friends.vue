@@ -2,7 +2,9 @@
 import router from '@/router'
 import { useMovieStore } from '@/stores/movie'
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { useFriendStore } from '@/stores/friend'
+import { ref, computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
 
 const activeIndex = ref(-1)
 const buttonRefs = ref<(HTMLButtonElement | null)[]>([])
@@ -23,11 +25,32 @@ const getButtonStyle = (index: number) => {
   return { left: '0px', width: '0px' }
 }
 
-const movieStore = useMovieStore()
 
-const {currentMovie} = storeToRefs(movieStore) 
+const friendStore = useFriendStore()
+const userStore = useUserStore()
 
-const playerUrl = ref(`https://vidsrc.icu/embed/movie/${currentMovie.value?.id}`);
+const search = ref('')
+
+
+const showResults = computed(() => search.value.trim().length > 0)
+
+const filteredUsers = computed(() => {
+  return friendStore.users.filter(u => {
+    const matches = u.nickname
+      .toLowerCase()
+      .includes(search.value.toLowerCase())
+
+    const notMe = u.id !== userStore.currentUser?.id
+
+    return matches && notMe
+  })
+})
+
+onMounted(() => {
+  friendStore.fetchUsers()
+  friendStore.fetchIncomingRequests()
+})
+
 </script>
 
 <template>
@@ -66,7 +89,7 @@ const playerUrl = ref(`https://vidsrc.icu/embed/movie/${currentMovie.value?.id}`
 
         <button :ref="el => buttonRefs[2] = el as HTMLButtonElement" class="relative
                 px-6 py-2 text-[#e7b4ff] transition-colors 
-                z-10" @mouseenter="activeIndex = 2" @click="router.push('/friends')">
+                z-10" @mouseenter="activeIndex = 2">
             Friends
         </button>
     
@@ -74,40 +97,50 @@ const playerUrl = ref(`https://vidsrc.icu/embed/movie/${currentMovie.value?.id}`
       </nav>
     </header>
 
-    <div class="flex flex-col mt-10 w-full max-w-4xl mx-auto">
-      <h2 class="text-2xl flex items-start pt-[120px] text-[#BC71E4]">
-        {{ currentMovie?.originalTitle }}
-      </h2>
-      
-      <div class="flex flex-row items-center justify-center">
-        <img 
-          :src="currentMovie?.primaryImage?.url || 'no image'" 
-          class="w-[300px] h-[450px] mt-[10px] object-contain rounded-lg""
-        >
-        
-        <p class="text-xl text-[#7ed2ea] text-center mx-[40px]">
-          {{ currentMovie?.plot }}
-        </p>
+   <div class="pt-50 text-white px-100">
+    <input v-model="search" type="text" class="bg-[#e7b4ff] w-100 h-10 text-[#500075] rounded-[50px] 
+                     p-5 outline-none hover:animate-bounce" placeholder="Search user...">
 
-      </div>
-      
 
-      <div class="bg-[#ffb3b2] py-[5px] mt-[10px] w-fit flex justify-center items-center rounded-full px-[10px]">
-        <span class="material-symbols-rounded text-[#5e151b]">
-          star
-        </span>
-        <h1 class="text-base text-[#5e151b]  ml-[5px]">{{currentMovie?.rating.aggregateRating}}</h1>
-      </div>
-      
-      <iframe 
-        :src="playerUrl" 
-        class="w-full h-[480px] rounded-[50px] shadow-lg mt-[10px] mb-[150px]"
-        scrolling="no"
-        allowfullscreen="true">
-      </iframe>
-
-      <div></div>
+  <div v-if="showResults">
+    <div
+      v-for="user in filteredUsers"
+      :key="user.id"
+      class="flex justify-between mb-2"
+    >
+      <span>{{ user.nickname }}</span>
+      <button
+        @click="friendStore.sendFriendRequest(user.id)"
+        class="bg-purple-500 px-2 py-1 rounded"
+      >
+        Add
+      </button>
     </div>
+
+
+    <div v-if="filteredUsers.length === 0" class="text-gray-400">
+      No users found
+    </div>
+  </div>
+
+
+  <h2 class="mt-6 text-xl">Requests</h2>
+
+  <div
+    v-for="user in friendStore.incomingRequests"
+    :key="user.id"
+    class="flex justify-between mt-2"
+  >
+    <span>{{ user.nickname }}</span>
+    <button
+      @click="friendStore.acceptFriendRequest(user.id)"
+      class="bg-green-500 px-2 py-1 rounded"
+    >
+      Accept
+    </button>
+  </div>
+
+</div>
   </div>
 
   

@@ -66,7 +66,7 @@ const goToWatchScreen = (movie: Movie) => {
 
         <button :ref="el => buttonRefs[0] = el as HTMLButtonElement"class="
                 relative px-6 py-2 text-[#e7b4ff]
-                transition-colors z-10" @mouseenter="activeIndex = 0">
+                transition-colors z-10" @mouseenter="activeIndex = 0" @click="router.push('/')">
             Home
         </button>
     
@@ -78,7 +78,7 @@ const goToWatchScreen = (movie: Movie) => {
 
         <button :ref="el => buttonRefs[2] = el as HTMLButtonElement" class="relative
                 px-6 py-2 text-[#e7b4ff] transition-colors 
-                z-10" @mouseenter="activeIndex = 2">
+                z-10" @mouseenter="activeIndex = 2" @click="router.push('/friends')">
             Friends
         </button>
     
