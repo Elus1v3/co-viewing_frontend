@@ -23,6 +23,13 @@ const getButtonStyle = (index: number) => {
   return { left: '0px', width: '0px' }
 }
 
+const isOpen = ref(false)
+
+const goToSignUp = () => {
+  router.push('/signup')
+}
+
+
 const movieStore = useMovieStore()
 
 const {currentMovie} = storeToRefs(movieStore) 
@@ -72,6 +79,18 @@ const playerUrl = ref(`https://vidsrc.icu/embed/movie/${currentMovie.value?.id}`
     
 
       </nav>
+      <div id="user-menu-button" class="bg-[rgba(188,113,228,0.15)] absolute right-10 flex justify-center items-center 
+           w-[50px] h-[50px] rounded-full cursor-pointer mt-[5px]" @click="isOpen = !isOpen">
+        <span class="material-symbols-rounded text-[#e7b4ff] rounded-full">
+          account_circle
+        </span>
+      </div>
+
+      
+      <button v-if="isOpen" @click="goToSignUp" class="bg-[#7ed2ea] text-[#003641] h-10 rounded-[50px] 
+              cursor-pointer hover:animate-pulse absolute right-10 w-[50px] mt-25">
+        Exit
+      </button>
     </header>
 
     <div class="flex flex-col mt-10 w-full max-w-4xl mx-auto">

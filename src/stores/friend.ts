@@ -5,39 +5,72 @@ import { useUserStore } from './user'
 export interface Friend {
   id: number
   nickname: string
+  status?: string 
 }
 
 export const useFriendStore = defineStore('friend', () => {
   const users = ref<Friend[]>([]) 
   const incomingRequests = ref<Friend[]>([]) 
+  const friends = ref<Friend[]>([]) 
+  const outgoingRequests = ref<Friend[]>([]) 
   const loading = ref(false)
-  const error = ref<string | null>(null)
-
   const userStore = useUserStore()
-
   const apiUrl = import.meta.env.VITE_API_URL
 
   const fetchUsers = async () => {
     try {
-      loading.value = true
       const res = await fetch(`${apiUrl}/api/co-viewing/users`)
-      const data = await res.json()
+      if (res.ok) users.value = await res.json()
+    } catch (err) { console.error(err) }
+  }
 
-      if (!res.ok) throw new Error(data.error)
+  const resetFriendState = () => {
+    users.value = []
+    incomingRequests.value = []
+    outgoingRequests.value = []
+    friends.value = []
+  }
 
-      users.value = data
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Error'
+  const fetchFriends = async () => {
+    if (!userStore.currentUser?.id) return
+
+    try {
+      loading.value = true
+
+
+      resetFriendState()
+
+      const userId = userStore.currentUser.id
+
+      const [reqRes, friendsRes] = await Promise.all([
+        fetch(`${apiUrl}/api/co-viewing/friends/${userId}`),
+        fetch(`${apiUrl}/api/co-viewing/friends/${userId}/list`)
+      ])
+
+      if (reqRes.ok) {
+        const data = await reqRes.json()
+        incomingRequests.value = Array.isArray(data) ? data : []
+      }
+
+      if (friendsRes.ok) {
+        const data = await friendsRes.json()
+        friends.value = Array.isArray(data) ? data : []
+      }
+
     } finally {
       loading.value = false
     }
   }
 
   const sendFriendRequest = async (friendId: number) => {
-    try {
-      loading.value = true
+    
+    const targetUser = users.value.find(u => u.id === friendId)
+    if (targetUser) {
+      outgoingRequests.value.push({ ...targetUser, status: 'pending' })
+    }
 
-      await fetch(`${apiUrl}/api/co-viewing/friends`, {
+    try {
+      const res = await fetch(`${apiUrl}/api/co-viewing/friends`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -45,39 +78,13 @@ export const useFriendStore = defineStore('friend', () => {
           friend_id: friendId,
         }),
       })
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Error'
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const fetchIncomingRequests = async () => {
-    try {
-      loading.value = true
-
-      const res = await fetch(
-        `${apiUrl}/api/co-viewing/friends/${userStore.currentUser?.id}`
-      )
-
-      const data = await res.json()
-
-      if (!res.ok) throw new Error(data.error)
-
-      incomingRequests.value = data
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Error'
-    } finally {
-      loading.value = false
-    }
+      if (res.ok) await fetchFriends() 
+    } catch (err) { console.error(err) }
   }
 
   const acceptFriendRequest = async (friendId: number) => {
     try {
-      loading.value = true
-
-
-      await fetch(`${apiUrl}/api/co-viewing/friends`, {
+      const res = await fetch(`${apiUrl}/api/co-viewing/friends`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -85,25 +92,30 @@ export const useFriendStore = defineStore('friend', () => {
           friend_id: userStore.currentUser?.id,
         }),
       })
+      if (res.ok) await fetchFriends()
+    } catch (err) { console.error(err) }
+  }
 
-      
-
-      await fetchIncomingRequests()
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Error'
-    } finally {
-      loading.value = false
-    }
+  const deleteFriend = async (friendId: number) => {
+  
+    friends.value = friends.value.filter(f => f.id !== friendId)
+    outgoingRequests.value = outgoingRequests.value.filter(f => f.id !== friendId)
+    
+    try {
+      const res = await fetch(`${apiUrl}/api/co-viewing/friends`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userStore.currentUser?.id,
+          friend_id: friendId,
+        }),
+      })
+      if (res.ok) await fetchFriends()
+    } catch (err) { console.error(err) }
   }
 
   return {
-    users,
-    incomingRequests,
-    loading,
-    error,
-    fetchUsers,
-    sendFriendRequest,
-    fetchIncomingRequests,
-    acceptFriendRequest,
+    users, incomingRequests, friends, outgoingRequests, loading,
+    fetchUsers, fetchFriends, sendFriendRequest, acceptFriendRequest, deleteFriend
   }
 })

@@ -3,6 +3,8 @@ import { useMovieStore, type Movie } from '@/stores/movie'
 import { storeToRefs } from 'pinia'
 import { ref, onMounted } from 'vue'
 import router from '@/router'
+import { document } from 'postcss'
+import btn from '@/components/btn.vue'
 
 
 const activeIndex = ref(-1)
@@ -25,7 +27,11 @@ const getButtonStyle = (index: number) => {
 }
 
 
+const isOpen = ref(false)
 
+const goToSignUp = () => {
+  router.push('/signup')
+}
 
 const movieStore = useMovieStore()
 
@@ -39,6 +45,7 @@ const goToWatchScreen = (movie: Movie) => {
   movieStore.setCurrentMovie(movie)
   router.push('/watch')
 }
+
 
 </script>
 
@@ -84,12 +91,19 @@ const goToWatchScreen = (movie: Movie) => {
     
 
       </nav>
-      <div class="bg-[rgba(188,113,228,0.15)] absolute right-10 flex justify-center items-center 
-           w-[50px] h-[50px] rounded-full cursor-pointer mt-[5px]">
-        <span class="material-symbols-rounded text-[#e7b4ff]  rounded-full">
+      <div id="user-menu-button" class="bg-[rgba(188,113,228,0.15)] absolute right-10 flex justify-center items-center 
+           w-[50px] h-[50px] rounded-full cursor-pointer mt-[5px]" @click="isOpen = !isOpen">
+        <span class="material-symbols-rounded text-[#e7b4ff] rounded-full">
           account_circle
         </span>
       </div>
+
+      
+      <button v-if="isOpen" @click="goToSignUp" class="bg-[#7ed2ea] text-[#003641] h-10 rounded-[50px] 
+              cursor-pointer hover:animate-pulse absolute right-10 w-[50px] mt-25">
+        Exit
+      </button>
+      
     </header>
 
     <div v-if="loading" class="flex justify-center items-center h-64">

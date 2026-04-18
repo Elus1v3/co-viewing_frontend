@@ -92,6 +92,8 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  
+
   return {
     currentUser,
     loading,
