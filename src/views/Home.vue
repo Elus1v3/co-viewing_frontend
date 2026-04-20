@@ -72,10 +72,11 @@ const handleScroll = () => {
 const goToSignUp = () => {
   router.push('/signup')
 }
-
+const apiUrl = import.meta.env.VITE_API_URL
 const goToWatchScreen = async (movie: Movie) => {
+  
   try {
-    await fetch('http://localhost:9090/api/co-viewing/movies', {
+    await fetch(`${apiUrl}/api/co-viewing/movies`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
