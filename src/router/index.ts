@@ -5,6 +5,7 @@ import SignIn from '@/views/SignIn.vue'
 import Home from '@/views/Home.vue'
 import WatchScreen from '@/views/WatchScreen.vue'
 import Friends from '@/views/Friends.vue'
+import History from '@/views/History.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,6 +29,11 @@ const router = createRouter({
       path: '/watch',
       name: 'watch',
       component: WatchScreen,
+    },
+    {
+      path: '/history',
+      name: 'history',
+      component: History
     },
     {
       path: '/friends',

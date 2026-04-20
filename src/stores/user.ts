@@ -13,51 +13,14 @@ export const useUserStore = defineStore('user', () => {
 
   const router = useRouter()
 
-  const signUp = async (nickname: string, password: string) => {
-    if (!nickname || !password) {
-      error.value = 'Заполните все поля'
-      return
-    }
-
-    try {
-      loading.value = true
-      error.value = null
-
-      const apiUrl = import.meta.env.VITE_API_URL
-
-      const response = await fetch(`${apiUrl}/api/co-viewing/users/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ nickname, password }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed')
-      }
-
-      currentUser.value = {
-        id: data.id
-      }
-
-      router.push('/')
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Unknown error'
-      console.error('Registration error:', err)
-    } finally {
-      loading.value = false
+  const initUser = () => {
+    const id = localStorage.getItem('userId')
+    if (id) {
+      currentUser.value = { id: Number(id) }
     }
   }
 
   const signIn = async (nickname: string, password: string) => {
-    if (!nickname || !password) {
-      error.value = 'Заполните все поля'
-      return
-    }
-
     try {
       loading.value = true
       error.value = null
@@ -66,10 +29,8 @@ export const useUserStore = defineStore('user', () => {
 
       const response = await fetch(`${apiUrl}/api/co-viewing/users/signin`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ nickname, password }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname, password })
       })
 
       const data = await response.json()
@@ -78,27 +39,65 @@ export const useUserStore = defineStore('user', () => {
         throw new Error(data.error || 'Login failed')
       }
 
-      currentUser.value = {
-        id: data.id
-      }
+      currentUser.value = { id: data.id }
 
+      localStorage.setItem('userId', String(data.id))
+      localStorage.setItem('isAuthenticated', 'true')
 
       router.push('/')
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Unknown error'
-      console.error('Login error:', err)
     } finally {
       loading.value = false
     }
   }
 
-  
+  const signUp = async (nickname: string, password: string) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const apiUrl = import.meta.env.VITE_API_URL
+
+      const response = await fetch(`${apiUrl}/api/co-viewing/users/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname, password })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed')
+      }
+
+      currentUser.value = { id: data.id }
+
+      localStorage.setItem('userId', String(data.id))
+      localStorage.setItem('isAuthenticated', 'true')
+
+      router.push('/')
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Unknown error'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const logout = () => {
+    currentUser.value = null
+    localStorage.removeItem('userId')
+    localStorage.removeItem('isAuthenticated')
+    router.push('/signin')
+  }
 
   return {
     currentUser,
     loading,
     error,
-    signUp,
     signIn,
+    signUp,
+    logout,
+    initUser
   }
 })
