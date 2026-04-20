@@ -58,7 +58,7 @@ const fetchHistory = async (userId: number) => {
     const apiUrl = import.meta.env.VITE_API_URL
 
     const res = await fetch(
-      `http://${apiUrl}/api/co-viewing/movies/${userId}`
+      `${apiUrl}/api/co-viewing/movies/${userId}`
     )
 
     if (!res.ok) {
