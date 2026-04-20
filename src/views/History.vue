@@ -55,9 +55,10 @@ const fetchHistory = async (userId: number) => {
   try {
     loading.value = true
     error.value = null
+    const apiUrl = import.meta.env.VITE_API_URL
 
     const res = await fetch(
-      `http://localhost:9090/api/co-viewing/movies/${userId}`
+      `http://${apiUrl}/api/co-viewing/movies/${userId}`
     )
 
     if (!res.ok) {
