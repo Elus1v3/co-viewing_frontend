@@ -122,7 +122,7 @@ const getButtonStyle = (index: number) => {
       
       <div
         ref="filterButtonRef"
-        class="bg-[rgba(188,113,228,0.15)] absolute right-205 flex justify-center items-center 
+        class="bg-[rgba(188,113,228,0.15)] absolute right-180 flex justify-center items-center 
                w-[50px] h-[50px] rounded-full cursor-pointer mt-[5px]"
         @click="showFilters = !showFilters"
       >
@@ -132,7 +132,7 @@ const getButtonStyle = (index: number) => {
       </div>
 
       
-      <div class="absolute left-137 mt-[5px]">
+      <div class="absolute left-112 mt-[5px]">
         <div class="flex items-center bg-[rgba(188,113,228,0.15)] rounded-full px-4 w-[320px] h-[50px]">
 
           <span class="material-symbols-rounded text-[#e7b4ff] mr-2">
