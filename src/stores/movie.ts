@@ -24,6 +24,7 @@ export const useMovieStore = defineStore('movie', () => {
   const movies = ref<Movie[]>([])
   const loading = ref(true)
   const error = ref<string | null>(null)
+  const searchQuery = ref('')
 
 
   const selectedGenres = ref<string[]>([])
@@ -51,6 +52,47 @@ export const useMovieStore = defineStore('movie', () => {
   function setCurrentMovie(movie: Movie) {
     currentMovie.value = movie
   }
+
+  async function searchMovies(query: string) {
+    try {
+        loading.value = true
+        error.value = null
+
+        const res = await fetch(
+        `https://api.imdbapi.dev/search/titles?query=${encodeURIComponent(query)}&limit=50`
+        )
+
+        if (!res.ok) {
+        throw new Error('Failed to search movies')
+        }
+
+        const data = await res.json()
+        const shortList = data.titles || data.results || []
+
+        
+        const validList = shortList.filter((m: any) => m?.id)
+
+        
+        const fullMovies = await Promise.all(
+        validList.map(async (m: any) => {
+            const r = await fetch(`https://api.imdbapi.dev/titles/${m.id}`)
+
+            if (!r.ok) {
+            return null
+            }
+
+            return await r.json()
+        })
+        )
+
+        
+        movies.value = fullMovies.filter(Boolean) as Movie[]
+    } catch (e) {
+        error.value = e instanceof Error ? e.message : 'Unknown error'
+    } finally {
+        loading.value = false
+    }
+    }
 
   function toggleGenre(genre: string) {
     const i = selectedGenres.value.indexOf(genre)
@@ -85,6 +127,8 @@ export const useMovieStore = defineStore('movie', () => {
     selectedGenres,
     toggleGenre,
     allGenres,
-    filteredMovies
+    filteredMovies,
+    searchQuery,
+    searchMovies
   }
 })

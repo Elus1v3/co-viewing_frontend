@@ -40,6 +40,19 @@ const {
   selectedGenres
 } = storeToRefs(movieStore)
 
+const searchQuery = ref('')
+
+const onSearch = async () => {
+  const q = searchQuery.value.trim()
+
+  if (!q) {
+    movieStore.getAllMovies()
+    return
+  }
+
+  await movieStore.searchMovies(q) 
+}
+
 const toggleGenre = (genre: string) => {
   movieStore.toggleGenre(genre)
 }
@@ -71,6 +84,23 @@ const goToWatchScreen = (movie: Movie) => {
           filter_alt
         </span>
       </div>
+
+      <div class="absolute left-137 mt-[5px]">
+        <div class="flex items-center bg-[rgba(188,113,228,0.15)] rounded-full px-4 pt-0.5 w-[320px] h-[50px]">
+
+          <span class="material-symbols-rounded text-[#e7b4ff] mr-2">
+            search
+          </span>
+
+          <input
+            v-model="searchQuery"
+            @keyup.enter="onSearch"
+            type="text"
+            placeholder="Search titles..."
+            class="bg-transparent outline-none text-[#e7b4ff] placeholder-[#b38acb] w-full"/>
+        </div>
+      </div>
+     
 
       <nav class="relative flex gap-4 mt-[5px] py-[5px] px-[5px] 
                 bg-[rgba(188,113,228,0.1)] rounded-[9999px] w-fit items-center"
