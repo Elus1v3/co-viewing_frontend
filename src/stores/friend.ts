@@ -21,13 +21,13 @@ export const useFriendStore = defineStore('friend', () => {
     try {
       const res = await fetch(`${apiUrl}/api/co-viewing/users`)
       if (res.ok) users.value = await res.json()
-    } catch (err) { console.error(err) }
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   const resetFriendState = () => {
-    users.value = []
     incomingRequests.value = []
-    outgoingRequests.value = []
     friends.value = []
   }
 
@@ -63,9 +63,9 @@ export const useFriendStore = defineStore('friend', () => {
   }
 
   const sendFriendRequest = async (friendId: number) => {
-    
     const targetUser = users.value.find(u => u.id === friendId)
-    if (targetUser) {
+    const alreadyRequested = outgoingRequests.value.some(u => u.id === friendId)
+    if (targetUser && !alreadyRequested) {
       outgoingRequests.value.push({ ...targetUser, status: 'pending' })
     }
 
@@ -78,8 +78,15 @@ export const useFriendStore = defineStore('friend', () => {
           friend_id: friendId,
         }),
       })
-      if (res.ok) await fetchFriends() 
-    } catch (err) { console.error(err) }
+      if (res.ok) {
+        await fetchFriends()
+      } else {
+        outgoingRequests.value = outgoingRequests.value.filter(u => u.id !== friendId)
+      }
+    } catch (err) {
+      outgoingRequests.value = outgoingRequests.value.filter(u => u.id !== friendId)
+      console.error(err)
+    }
   }
 
   const acceptFriendRequest = async (friendId: number) => {

@@ -271,6 +271,15 @@ const getButtonStyle = (index: number) => {
             {{ movie.startYear || 'N/A' }}
           </p>
 
+          <div v-if="movie.genres" class="flex flex-wrap gap-1">
+              <span 
+                v-for="genre in movie.genres" 
+                :key="genre"
+                class="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded">
+                {{ genre }}
+              </span>
+          </div>
+
         </div>
 
       </div>

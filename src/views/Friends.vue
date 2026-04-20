@@ -96,7 +96,7 @@ const goToSignUp = () => {
     
         <button :ref="el => buttonRefs[1] = el as HTMLButtonElement" class="relative
                 px-6 py-2 text-[#e7b4ff] transition-colors 
-                z-10" @mouseenter="activeIndex = 1">
+                z-10" @mouseenter="activeIndex = 1" @click="router.push('/history')">
             History
         </button>
 
